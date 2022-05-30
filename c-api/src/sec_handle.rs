@@ -205,7 +205,7 @@ pub type InitializeSecurityContextFnA = unsafe extern "system" fn(
 ) -> SecurityStatus;
 
 #[no_mangle]
-pub unsafe extern "system" fn InitializeSecurityContextW(
+pub unsafe extern "system" fn Rust_InitializeSecurityContextW(
     ph_credential: PCredHandle,
     ph_context: PCtxtHandle,
     p_target_name: *const SecWChar,
