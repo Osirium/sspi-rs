@@ -1,15 +1,3 @@
-use std::fmt::Debug;
-
-use url::Url;
-
-use crate::sspi::Result;
-
-pub trait NetworkClient: Debug {
-    fn send(&self, url: &Url, data: &[u8]) -> Result<Vec<u8>>;
-    fn send_http(&self, url: &Url, data: &[u8], domain: Option<String>) -> Result<Vec<u8>>;
-    fn clone(&self) -> Box<dyn NetworkClient>;
-}
-
 #[cfg(feature = "network_client")]
 pub mod reqwest_network_client {
     use std::io::{Read, Write};
@@ -23,7 +11,6 @@ pub mod reqwest_network_client {
     use reqwest::blocking::Client;
     use url::Url;
 
-    use super::NetworkClient;
     use crate::{Error, ErrorKind, Result};
 
     #[derive(Debug, Clone)]
@@ -35,8 +22,8 @@ pub mod reqwest_network_client {
         }
     }
 
-    impl NetworkClient for ReqwestNetworkClient {
-        fn send(&self, url: &Url, data: &[u8]) -> Result<Vec<u8>> {
+    impl ReqwestNetworkClient {
+        pub fn send(&self, url: &Url, data: &[u8]) -> Result<Vec<u8>> {
             match url.scheme() {
                 "tcp" => {
                     let mut stream = TcpStream::connect(&format!(
@@ -72,7 +59,7 @@ pub mod reqwest_network_client {
             }
         }
 
-        fn send_http(&self, url: &Url, data: &[u8], domain: Option<String>) -> Result<Vec<u8>> {
+        pub fn send_http(&self, url: &Url, data: &[u8], domain: Option<String>) -> Result<Vec<u8>> {
             let client = Client::new();
 
             let domain = if let Some(domain) = domain {
@@ -107,10 +94,6 @@ pub mod reqwest_network_client {
             let kdc_proxy_message: KdcProxyMessage = picky_asn1_der::from_bytes(&result_bytes)?;
 
             Ok(kdc_proxy_message.kerb_message.0 .0)
-        }
-
-        fn clone(&self) -> Box<dyn NetworkClient> {
-            Box::new(Clone::clone(self))
         }
     }
 

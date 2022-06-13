@@ -6,7 +6,6 @@ use url::Url;
 
 #[cfg(feature = "network_client")]
 use super::network_client::reqwest_network_client::ReqwestNetworkClient;
-use super::network_client::NetworkClient;
 use super::SSPI_KDC_URL_ENV;
 
 #[derive(Debug, Clone)]
@@ -19,7 +18,7 @@ pub enum KdcType {
 pub struct KerberosConfig {
     pub url: Url,
     pub kdc_type: KdcType,
-    pub network_client: Box<dyn NetworkClient>,
+    pub network_client: Box<ReqwestNetworkClient>,
 }
 
 impl KerberosConfig {
@@ -39,7 +38,7 @@ impl KerberosConfig {
         Some((kdc_url, kdc_type))
     }
 
-    pub fn new_with_network_client(network_client: Box<dyn NetworkClient>) -> Self {
+    pub fn new_with_network_client(network_client: Box<ReqwestNetworkClient>) -> Self {
         if let Some((kdc_url, kdc_type)) = Self::get_kdc_env() {
             Self {
                 url: kdc_url,
@@ -58,7 +57,7 @@ impl KerberosConfig {
     }
 
     #[cfg(not(feature = "network_client"))]
-    pub fn from_env(network_client: Box<dyn NetworkClient>) -> Self {
+    pub fn from_env(network_client: Box<ReqwestNetworkClient>) -> Self {
         Self::new_with_network_client(network_client)
     }
 }
