@@ -1415,11 +1415,78 @@ impl From<Asn1DerError> for Error {
     }
 }
 
+pub fn get_krb_status_from_code(error_code: &[u8]) -> &'static str {
+    return match error_code {
+        [0x0] => "KDC_ERR_NONE",
+        [0x1] => "KDC_ERR_NAME_EXP",
+        [0x2] => "KDC_ERR_SERVICE_EXP",
+        [0x3] => "KDC_ERR_BAD_PVNO",
+        [0x4] => "KDC_ERR_C_OLD_MAST_KVNO",
+        [0x5] => "KDC_ERR_S_OLD_MAST_KVNO",
+        [0x6] => "Unrecognised Username - KDC_ERR_C_PRINCIPAL_UNKNOWN",
+        [0x7] => "Unrecognised Server - KDC_ERR_S_PRINCIPAL_UNKNOWN",
+        [0x8] => "KDC_ERR_PRINCIPAL_NOT_UNIQUE",
+        [0x9] => "KDC_ERR_NULL_KEY",
+        [0xA] => "KDC_ERR_CANNOT_POSTDATE",
+        [0xB] => "KDC_ERR_NEVER_VALID",
+        [0xC] => "KDC_ERR_POLICY",
+        [0xD] => "KDC_ERR_BADOPTION",
+        [0xE] => "KDC_ERR_ETYPE_NOTSUPP",
+        [0xF] => "KDC_ERR_SUMTYPE_NOSUPP",
+        [0x10] => "KDC_ERR_PADATA_TYPE_NOSUPP",
+        [0x11] => "KDC_ERR_TRTYPE_NO_SUPP",
+        [0x12] => "KDC_ERR_CLIENT_REVOKED",
+        [0x13] => "KDC_ERR_SERVICE_REVOKED",
+        [0x14] => "KDC_ERR_TGT_REVOKED",
+        [0x15] => "KDC_ERR_CLIENT_NOTYET",
+        [0x16] => "KDC_ERR_SERVICE_NOTYET",
+        [0x17] => "Credentials Expired - KDC_ERR_KEY_EXPIRED",
+        [0x18] => "Incorrect Credentials - KDC_ERR_PREAUTH_FAILED",
+        [0x19] => "KDC_ERR_PREAUTH_REQUIRED",
+        [0x1A] => "KDC_ERR_SERVER_NOMATCH",
+        [0x1B] => "KDC_ERR_SVC_UNAVAILABLE",
+        [0x1F] => "KRB_AP_ERR_BAD_INTEGRITY",
+        [0x20] => "KRB_AP_ERR_TKT_EXPIRED",
+        [0x21] => "KRB_AP_ERR_TKT_NYV",
+        [0x22] => "KRB_AP_ERR_REPEAT",
+        [0x23] => "KRB_AP_ERR_NOT_US",
+        [0x24] => "KRB_AP_ERR_BADMATCH",
+        [0x25] => "KRB_AP_ERR_SKEW",
+        [0x26] => "KRB_AP_ERR_BADADDR",
+        [0x27] => "KRB_AP_ERR_BADVERSION",
+        [0x28] => "KRB_AP_ERR_MSG_TYPE",
+        [0x29] => "KRB_AP_ERR_MODIFIED",
+        [0x2A] => "KRB_AP_ERR_BADORDER",
+        [0x2C] => "KRB_AP_ERR_BADKEYVER",
+        [0x2D] => "KRB_AP_ERR_NOKEY",
+        [0x2E] => "KRB_AP_ERR_MUT_FAIL",
+        [0x2F] => "KRB_AP_ERR_BADDIRECTION",
+        [0x30] => "KRB_AP_ERR_METHOD",
+        [0x31] => "KRB_AP_ERR_BADSEQ",
+        [0x32] => "KRB_AP_ERR_INAPP_CKSUM",
+        [0x33] => "KRB_AP_PATH_NOT_ACCEPTED",
+        [0x34] => "KRB_ERR_RESPONSE_TOO_BIG",
+        [0x3C] => "KRB_ERR_GENERIC",
+        [0x3D] => "KRB_ERR_FIELD_TOOLONG",
+        [0x3E] => "KDC_ERR_CLIENT_NOT_TRUSTED",
+        [0x3F] => "KDC_ERR_KDC_NOT_TRUSTED",
+        [0x40] => "KDC_ERR_INVALID_SIG",
+        [0x41] => "KDC_ERR_KEY_TOO_WEAK",
+        [0x42] => "KRB_AP_ERR_USER_TO_USER_REQUIRED",
+        [0x43] => "KRB_AP_ERR_NO_TGT",
+        [0x44] => "Unrecognised Domain - KDC_ERR_WRONG_REALM",
+        _ =>  "MISSING_ERROR",
+    }
+}
+
 impl From<KrbError> for Error {
     fn from(err: KrbError) -> Self {
+        let error_code = err.0.error_code.as_unsigned_bytes_be();
+        let error = get_krb_status_from_code(error_code);
+
         Self::new(
             ErrorKind::InternalError,
-            format!("Got the krb error: {}", err.0.to_string()),
+            format!("Got the krb error: {} ({})", error, err.0.to_string()),
         )
     }
 }
